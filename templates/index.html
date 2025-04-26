@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Client Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .info-container {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .info-item {
+            margin: 10px 0;
+        }
+        .label {
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Client Information</h1>
+    <div class="info-container">
+        <div class="info-item">
+            <span class="label">User Agent:</span>
+            <span id="userAgent">Loading...</span>
+        </div>
+        <div class="info-item">
+            <span class="label">IP Address:</span>
+            <span id="ipAddress">Loading...</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Local IP Address:</span>
+            <span id="localIp">Loading...</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Screen Resolution:</span>
+            <span id="screenResolution">Loading...</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Browser Language:</span>
+            <span id="language">Loading...</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Platform:</span>
+            <span id="platform">Loading...</span>
+        </div>
+    </div>
+
+    <script>
+        // Function to get local IP addresses using WebRTC
+        async function getLocalIPs() {
+            const ips = [];
+            const pc = new RTCPeerConnection({
+                iceServers: []
+            });
+
+            pc.createDataChannel('');
+            
+            pc.onicecandidate = function(e) {
+                if (!e.candidate) return;
+                const ip = /^candidate:.+ (\S+) \d+ typ/.exec(e.candidate.candidate)[1];
+                if (ips.indexOf(ip) == -1) ips.push(ip);
+            };
+            
+            pc.createOffer()
+                .then(offer => pc.setLocalDescription(offer))
+                .catch(e => console.error(e));
+            
+            return ips;
+        }
+
+        // Function to update the UI with client information
+        async function updateClientInfo() {
+            // Get server-side information
+            try {
+                const response = await fetch('/client-info', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                
+                document.getElementById('userAgent').textContent = data.user_agent;
+                document.getElementById('ipAddress').textContent = data.ip;
+            } catch (error) {
+                console.error('Error fetching server info:', error);
+            }
+
+            // Get local IP addresses
+            try {
+                const localIPs = await getLocalIPs();
+                document.getElementById('localIp').textContent = localIPs.join(', ');
+            } catch (error) {
+                document.getElementById('localIp').textContent = 'Not available';
+            }
+
+            // Get other client-side information
+            document.getElementById('screenResolution').textContent = 
+                `${window.screen.width}x${window.screen.height}`;
+            document.getElementById('language').textContent = 
+                navigator.language || navigator.userLanguage;
+            document.getElementById('platform').textContent = 
+                navigator.platform;
+        }
+
+        // Update information when page loads
+        updateClientInfo();
+    </script>
+</body>
+</html> 
