@@ -10,6 +10,8 @@ A simple FastAPI application that collects and displays client information inclu
 
 ## Setup
 
+### Option 1: Local Setup
+
 1. Create a virtual environment (optional but recommended):
 ```bash
 python -m venv venv
@@ -27,6 +29,23 @@ python main.py
 ```
 
 4. Open your browser and navigate to:
+```
+http://localhost:8000
+```
+
+### Option 2: Docker Setup
+
+1. Build the Docker image:
+```bash
+docker build -t client-info-collector .
+```
+
+2. Run the container:
+```bash
+docker run -p 8000:8000 client-info-collector
+```
+
+3. Open your browser and navigate to:
 ```
 http://localhost:8000
 ```
